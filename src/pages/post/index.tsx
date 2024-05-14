@@ -8,68 +8,65 @@ import {
 import { Info, Bio, Container, Profile, Content } from './styled'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-
-const markdown = `
-Programming languages all have built-in data structures, but these
-often differ from one language to another. This article attempts to
-list the built-in data structures available in JavaScript and what
-properties they have. These can be used to build other data
-structures. Wherever possible, comparisons with other languages are
-drawn.
-
-[Dynamic typing](https://www.rocketseat.com.br/ignite)
-
-JavaScript is a loosely typed and dynamic language. Variables in
-JavaScript are not directly associated with any particular value type,
-and any variable can be assigned (and re-assigned) values of all
-types:
-
-<code>
-  let foo = 42; // foo is now a number
-
-  foo = ‘bar’; // foo is now a string
-
-  foo = true; // foo is now a boolean
-</code>
-`
+import { useContext, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { IssuesContext } from '../../contexts/issues-context'
 
 export function Post() {
+  const params = useParams()
+  const { issue, fetchUniqueIssue, handleNavigate } = useContext(IssuesContext)
+
+  useEffect(() => {
+    if (params.id) {
+      fetchUniqueIssue(params.id)
+    }
+  }, [params.id, fetchUniqueIssue])
+
   return (
     <Container>
       <Profile>
         <Bio>
           <header>
-            <div>
+            <div onClick={() => handleNavigate('/')}>
               <CaretLeft />
               <span>VOLTAR</span>
             </div>
             <div>
-              <a href="#">VER NO GITHUB</a>
+              <a href={issue.html_url} target="_blank" rel="noreferrer">
+                VER NO GITHUB
+              </a>
               <ArrowUpRight />
             </div>
           </header>
 
-          <h1>JavaScript data types and data structures</h1>
+          <h1>{issue.title}</h1>
 
           <Info>
             <div>
               <GithubLogo weight="fill" size={18} />
-              <span>cameronwll</span>
+              <span>{issue.user?.login}</span>
             </div>
             <div>
               <Calendar weight="fill" size={18} />
-              <span>Há 1 dia</span>
+              <span>
+                {issue.created_at &&
+                  formatDistanceToNow(new Date(issue.created_at), {
+                    locale: ptBR,
+                  })}
+              </span>
             </div>
             <div>
               <ChatCircle weight="fill" size={18} />
-              <span>5 comentários</span>
+              <span>{issue.comments} comentários</span>
             </div>
           </Info>
         </Bio>
       </Profile>
 
       <Content>
-        <Markdown remarkPlugins={[remarkGfm]}>{markdown}</Markdown>
+        <Markdown remarkPlugins={[remarkGfm]}>{issue.body}</Markdown>
       </Content>
     </Container>
   )

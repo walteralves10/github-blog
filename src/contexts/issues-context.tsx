@@ -14,12 +14,19 @@ export interface Issue {
   title: string
   created_at: string
   number: number
+  comments?: number
+  html_url?: string
+  user?: {
+    login: string
+  }
 }
 interface IssuesContextType {
   issues: Issue[]
-  handleIssue: (number: number) => void
+  handleNavigate: (url: string) => void
   fetchIssues: () => Promise<void>
   fetchSearchIssues: (query: string, username: string) => Promise<void>
+  issue: Issue
+  fetchUniqueIssue: (id: string) => Promise<void>
 }
 interface IssuesProvider {
   children: ReactNode
@@ -30,6 +37,18 @@ export const IssuesContext = createContext({} as IssuesContextType)
 export function IssuesProvider({ children }: IssuesProvider) {
   const navigate = useNavigate()
   const [issues, setIssues] = useState<Issue[]>([])
+
+  const [issue, setIssue] = useState<Issue>({
+    body: '',
+    title: '',
+    created_at: '',
+    number: 0,
+    comments: 0,
+    html_url: '',
+    user: {
+      login: '',
+    },
+  })
 
   const fetchIssues = useCallback(async () => {
     const response = await api.get('repos/walteralves10/github-blog/issues')
@@ -46,13 +65,20 @@ export function IssuesProvider({ children }: IssuesProvider) {
     [],
   )
 
+  const fetchUniqueIssue = useCallback(async (id: string) => {
+    const response = await api.get(
+      `repos/walteralves10/github-blog/issues/${id}`,
+    )
+    setIssue(response.data)
+  }, [])
+
   useEffect(() => {
     fetchIssues()
   }, [fetchIssues])
 
-  const handleIssue = useCallback(
-    (number: number) => {
-      navigate(`post/${number}`)
+  const handleNavigate = useCallback(
+    (url: string) => {
+      navigate(url)
     },
     [navigate],
   )
@@ -60,11 +86,20 @@ export function IssuesProvider({ children }: IssuesProvider) {
   const value = useMemo(
     () => ({
       issues,
-      handleIssue,
+      handleNavigate,
       fetchIssues,
       fetchSearchIssues,
+      issue,
+      fetchUniqueIssue,
     }),
-    [issues, handleIssue, fetchIssues, fetchSearchIssues],
+    [
+      issues,
+      handleNavigate,
+      fetchIssues,
+      fetchSearchIssues,
+      issue,
+      fetchUniqueIssue,
+    ],
   )
 
   return (

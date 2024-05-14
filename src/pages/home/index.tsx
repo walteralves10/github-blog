@@ -17,7 +17,8 @@ import { Issue, IssuesContext } from '../../contexts/issues-context'
 
 export function Home() {
   const { user } = useContext(UsersContext)
-  const { issues, fetchSearchIssues, handleIssue } = useContext(IssuesContext)
+  const { issues, fetchSearchIssues, handleNavigate } =
+    useContext(IssuesContext)
 
   const debouncedOnChange = debounce(handleSearch, 500)
 
@@ -73,7 +74,10 @@ export function Home() {
 
       <ContainerList>
         {issues.map((issue: Issue) => (
-          <List key={issue.number} onClick={() => handleIssue(issue.number)}>
+          <List
+            key={issue.number}
+            onClick={() => handleNavigate(`post/${issue.number}`)}
+          >
             <div>
               <span>{issue.title}</span>
               <span>
