@@ -1,4 +1,5 @@
 import { ArrowUpRight, Buildings, GithubLogo, Users } from 'phosphor-react'
+import { ChangeEvent, useContext } from 'react'
 import {
   Container,
   Profile,
@@ -8,39 +9,51 @@ import {
   List,
   ContainerList,
 } from './styled'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { debounce } from 'lodash'
+import { UsersContext } from '../../contexts/users-context'
+import { Issue, IssuesContext } from '../../contexts/issues-context'
 
 export function Home() {
+  const { user } = useContext(UsersContext)
+  const { issues, fetchSearchIssues, handleIssue } = useContext(IssuesContext)
+
+  const debouncedOnChange = debounce(handleSearch, 500)
+
+  function handleSearch(e: ChangeEvent<HTMLInputElement>) {
+    fetchSearchIssues(e.target.value, user.login)
+  }
+
   return (
     <Container>
       <Profile>
-        <img src="/src/assets/avatar.svg" alt="" />
+        <img src={user.avatar_url} alt="" />
         <Bio>
           <header>
-            <h1>Cameron Williamson</h1>
+            <h1>{user.name}</h1>
             <div>
-              <a href="#">GITHUB</a>
+              <a href={user.html_url} target="_blank" rel="noreferrer">
+                GITHUB
+              </a>
               <ArrowUpRight />
             </div>
           </header>
 
-          <p>
-            Tristique volutpat pulvinar vel massa, pellentesque egestas. Eu
-            viverra massa quam dignissim aenean malesuada suscipit. Nunc,
-            volutpat pulvinar vel mass.
-          </p>
+          <p>{user.bio}</p>
 
           <Info>
             <div>
               <GithubLogo size={18} />
-              <span>cameronwll</span>
+              <span>{user.login}</span>
             </div>
             <div>
               <Buildings size={18} />
-              <span>Rocketseat</span>
+              <span>{user.company}</span>
             </div>
             <div>
               <Users size={18} />
-              <span>32 seguidores</span>
+              <span>{user.followers} seguidores</span>
             </div>
           </Info>
         </Bio>
@@ -49,96 +62,30 @@ export function Home() {
       <SearchPost>
         <div>
           <span>Publicações</span>
-          <span>6 publicações</span>
+          <span>{issues.length} publicações</span>
         </div>
-        <input type="search" placeholder="Buscar conteúdo" />
+        <input
+          onChange={debouncedOnChange}
+          type="search"
+          placeholder="Buscar conteúdo"
+        />
       </SearchPost>
 
       <ContainerList>
-        <List>
-          <div>
-            <span>JavaScript data types and data structures</span>
-            <span>Há 1 dia</span>
-          </div>
-          <p>
-            Programming languages all have built-in data structures, but these
-            often differ from one language to another. This article attempts to
-            list the built-in data structures available in JavaScript and what
-            properties they have. These can be used to build other data
-            structures. Wherever possible, comparisons with other languages are
-            drawn.
-          </p>
-        </List>
-        <List>
-          <div>
-            <span>JavaScript data types and data structures</span>
-            <span>Há 1 dia</span>
-          </div>
-          <p>
-            Programming languages all have built-in data structures, but these
-            often differ from one language to another. This article attempts to
-            list the built-in data structures available in JavaScript and what
-            properties they have. These can be used to build other data
-            structures. Wherever possible, comparisons with other languages are
-            drawn.
-          </p>
-        </List>
-        <List>
-          <div>
-            <span>JavaScript data types and data structures</span>
-            <span>Há 1 dia</span>
-          </div>
-          <p>
-            Programming languages all have built-in data structures, but these
-            often differ from one language to another. This article attempts to
-            list the built-in data structures available in JavaScript and what
-            properties they have. These can be used to build other data
-            structures. Wherever possible, comparisons with other languages are
-            drawn.
-          </p>
-        </List>
-        <List>
-          <div>
-            <span>JavaScript data types and data structures</span>
-            <span>Há 1 dia</span>
-          </div>
-          <p>
-            Programming languages all have built-in data structures, but these
-            often differ from one language to another. This article attempts to
-            list the built-in data structures available in JavaScript and what
-            properties they have. These can be used to build other data
-            structures. Wherever possible, comparisons with other languages are
-            drawn.
-          </p>
-        </List>
-        <List>
-          <div>
-            <span>JavaScript data types and data structures</span>
-            <span>Há 1 dia</span>
-          </div>
-          <p>
-            Programming languages all have built-in data structures, but these
-            often differ from one language to another. This article attempts to
-            list the built-in data structures available in JavaScript and what
-            properties they have. These can be used to build other data
-            structures. Wherever possible, comparisons with other languages are
-            drawn.
-          </p>
-        </List>
-        <List>
-          <div>
-            <span>JavaScript data types and data structures</span>
-            <span>Há 1 dia</span>
-          </div>
-          <p>
-            Programming languages all have built-in data structures, but these
-            often differ from one language to another. This article attempts to
-            list the built-in data structures available in JavaScript and what
-            properties they have. These can be used to build other data
-            structures. Wherever possible, comparisons with other languages are
-            drawn.
-          </p>
-        </List>
+        {issues.map((issue: Issue) => (
+          <List key={issue.number} onClick={() => handleIssue(issue.number)}>
+            <div>
+              <span>{issue.title}</span>
+              <span>
+                {issue.created_at &&
+                  formatDistanceToNow(new Date(issue.created_at), {
+                    locale: ptBR,
+                  })}
+              </span>
+            </div>
+            <p>{issue.body}</p>
+          </List>
+        ))}
       </ContainerList>
     </Container>
   )
